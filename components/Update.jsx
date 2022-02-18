@@ -88,7 +88,9 @@ export default function Update(props) {
 }
 
 export async function getServerSideProps(context) {
-  const res = await fetch(`http://localhost:3000/api/${context.params.id}`);
+  const res = await fetch(
+    `http://localhost:3000/api/update/${context.params.id}`
+  );
   const data = await res.json();
   return { props: { ...data } };
 }
