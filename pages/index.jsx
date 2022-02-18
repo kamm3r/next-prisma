@@ -1,130 +1,91 @@
 import Head from 'next/head';
 import { useState } from 'react';
-import Link from 'next/link';
-import { PrismaClient } from '@prisma/client';
-import DeleteMovie from './[id]';
-const prisma = new PrismaClient();
+import Form from '../components/Form';
+import Movies from '../components/Movies';
+import prisma from '../lib/prisma';
+import toast from 'react-hot-toast';
+import Edit from '../components/Edit';
+import { useTheme } from 'next-themes';
+import { MdOutlineDarkMode, MdOutlineLightMode } from 'react-icons/md';
+import { useRouter } from 'next/router';
 
 export default function Home({ data }) {
   const [formData, setFormData] = useState({});
   const [movies, setMovies] = useState(data);
+  const { theme, setTheme } = useTheme();
+  const router = useRouter();
 
-  async function saveMovie(e) {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setMovies([...movies, formData]);
-    const res = await fetch('/api/movies', {
-      method: 'POST',
-      body: JSON.stringify(formData),
-    });
-    return await res.json();
-  }
+    try {
+      setMovies([...movies, formData]);
+      await fetch('api/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      e.target.reset();
+      await router.push('/');
+      toast.success('Movies/Series Added!');
+    } catch (err) {
+      console.error(err);
+      return toast.error("Couldn't Add");
+    }
+  };
 
   return (
-    <main className='min-h-screen flex items-start justify-evenly bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
+    <div className='relative bg-image-white dark:bg-image-dark'>
       <Head>
-        <title>Anime List</title>
+        <title>Favorites List</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <section className='max-w-md w-full space-y-8'>
-        <form className='mt-8 space-y-6' onSubmit={saveMovie}>
-          <input
-            className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-            type='text'
-            placeholder='Title'
-            name='title'
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-          />
-          <input
-            className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-            type='text'
-            placeholder='Year'
-            name='year'
-            onChange={(e) =>
-              setFormData({ ...formData, year: +e.target.value })
-            }
-          />
-          <textarea
-            className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-            name='description'
-            id=''
-            cols='30'
-            rows='10'
-            placeholder='Description'
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-          />
-          <input
-            className='appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm'
-            type='text'
-            placeholder='Slug'
-            name='slug'
-            onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-          />
-          <button
-            className='group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-            type='submit'
-          >
-            Add movie
-          </button>
-        </form>
-      </section>
-      <section className='flex flex-col'>
-        <div className='-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8'>
-          <div className='py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8'>
-            <div className=' overflow-hidden'>
-              <ul className='grid grid-cols-1 gap-6 my-6 px-4 md:px-6 lg:px-8'>
-                {movies.map((item) => (
-                  <li
-                    className='flex justify-start max-w-xl px-4 py-4 bg-white shadow-md rounded-lg relative'
-                    key={item.id}
-                  >
-                    <section className='py-2 flex flex-col items-center justify-between'>
-                      <div className='leading-snug flex flex-col'>
-                        {/* <span
-                          className='absolute top-0 bottom-0 right-0 px-4 py-3'
-                          onClick={() => deleting(item.id)}
-                        >
-                          <svg
-                            className='fill-current h-5 w-5 text-gray-600'
-                            role='button'
-                            xmlns='http://www.w3.org/2000/svg'
-                            viewBox='0 0 20 20'
-                          >
-                            <title>Close</title>
-                            <path d='M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z' />
-                          </svg>
-                        </span> */}
-                        <DeleteMovie />
+      <button
+        className='absolute z-40 px-6 py-4'
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      >
+        {theme === 'light' ? (
+          <MdOutlineLightMode className='text-3xl text-gray-600' />
+        ) : (
+          <MdOutlineDarkMode className='text-3xl text-gray-600' />
+        )}
+      </button>
 
-                        <span>
-                          <strong>{item.title}</strong>
-                        </span>
-                        <span>
-                          <em>Release date:</em> {item.year}
-                        </span>
-                        <span>{item.description}</span>
-                        <Link href={`/movies/${item.slug}`}>
-                          <a className='text-blue-500'>More about this movie</a>
-                        </Link>
-                      </div>
-                    </section>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+      {/* <header className='fixed z-50'>
+        <div className='flex justify-center items-center w-screen'>
+          <h1 className='text-5xl font-bold text-gray-500'>Favorites List</h1>
         </div>
-      </section>
-    </main>
+      </header> */}
+      <main className='bg-white/20 dark:bg-black/20 backdrop-blur flex items-start justify-evenly py-12 px-4 sm:px-6 lg:px-8 overflow-hidden max-h-screen'>
+        <section className='max-w-md w-full space-y-8'>
+          <Form
+            submitHandler={submitHandler}
+            setFormData={setFormData}
+            formData={formData}
+          />
+        </section>
+        <section className='flex flex-col pb-10 overflow-y-scroll scrollbar max-h-screen'>
+          <ul className='grid grid-cols-1 gap-6 my-6 px-4 md:px-6 lg:px-8'>
+            {movies &&
+              movies.map((item, i) => (
+                <Movies
+                  key={i}
+                  id={item.id}
+                  title={item.title}
+                  year={item.year}
+                  description={item.description}
+                  slug={item.slug}
+                />
+              ))}
+          </ul>
+        </section>
+      </main>
+    </div>
   );
 }
 
 export async function getServerSideProps(context) {
-  const movies = await prisma.movie.findMany();
+  const movies = await prisma.Movie.findMany();
   return {
     props: {
       data: movies,

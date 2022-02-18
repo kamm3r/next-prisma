@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import prisma from '../../lib/prisma';
 
 export default async function handle(req, res) {
   const movieId = req.query.id;
@@ -15,19 +14,16 @@ export default async function handle(req, res) {
   }
 }
 
-// GET /api/:id
 async function handleGET(movieId, res) {
-  const movie = await prisma.movie.findUnique({
+  const getMovie = await prisma.Movie.findUnique({
     where: { id: Number(movieId) },
-    include: { slug: true },
   });
-  res.json(movie);
+  res.json(getMovie);
 }
 
-// DELETE /api/:id
 async function handleDELETE(movieId, res) {
-  const movie = await prisma.movie.delete({
+  const deleteMovie = await prisma.Movie.delete({
     where: { id: Number(movieId) },
   });
-  res.json(movie);
+  res.json(deleteMovie);
 }
