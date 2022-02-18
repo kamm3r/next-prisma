@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 export default function Update(props) {
   const UpdateMovie = async (id) => {
     try {
-      await fetch(`/api/${id}`, {
+      await fetch(`/api/update/${id}`, {
         method: 'PUT',
       });
       await Router.push('/');
